@@ -518,7 +518,8 @@ function interpolateEnvRecord(values: Record<string, string> | undefined): Recor
 
 function interpolateEnvVars(value: string): string {
 	return value
-		.replace(/\$\{(\w+)\}/g, (_, name: string) => process.env[name] ?? "")
+		// `${NAME:-default}` uses the default only when NAME is unset, as pi-mcp-adapter and Claude Code do.
+		.replace(/\$\{(\w+)(?::-([^}]*))?\}/g, (_, name: string, fallback: string | undefined) => process.env[name] ?? fallback ?? "")
 		.replace(/\$env:(\w+)/g, (_, name: string) => process.env[name] ?? "")
 		.replace(/\{env:(\w+)\}/g, (_, name: string) => process.env[name] ?? "");
 }
@@ -530,9 +531,9 @@ function interpolateSecretExpression(value: string): string {
 
 function getMissingEnvVars(value: string): string[] {
 	const missing = new Set<string>();
-	for (const match of value.matchAll(/\$\{(\w+)\}|\$env:(\w+)|\{env:(\w+)\}/g)) {
-		const name = match[1] ?? match[2] ?? match[3];
-		if (name && process.env[name] === undefined) missing.add(name);
+	for (const match of value.matchAll(/\$\{(\w+)(:-[^}]*)?\}|\$env:(\w+)|\{env:(\w+)\}/g)) {
+		const name = match[1] ?? match[3] ?? match[4];
+		if (name && match[2] === undefined && process.env[name] === undefined) missing.add(name);
 	}
 	return [...missing];
 }
