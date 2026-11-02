@@ -83,6 +83,18 @@ describe("MCP direct-tool resolution config sources", () => {
 		assert.deepEqual(resolution.unresolvedSelectors, []);
 	});
 
+	it("resolves direct tools from a server whose directTools is \"search\"", () => {
+		// pi-mcp-adapter 7 accepts "search"; rejecting it dropped the server and left every selector unresolved.
+		const definition: McpServerDefinition = { ...CURRENT_DEFINITION, directTools: "search" };
+		writeServerConfig(path.join(agentDir, "mcp-adapter.json"), definition);
+		writeMetadataCache(definition);
+
+		const resolution = resolveMcpDirectToolResolution(SELECTORS, projectDir);
+
+		assert.deepEqual(resolution.selections.map((selection) => selection.name), SELECTED_NAMES);
+		assert.deepEqual(resolution.unresolvedSelectors, []);
+	});
+
 	it("computes config hashes identical to pi-mcp-adapter 3.1.0 for stdio servers", () => {
 		// Values reproduced from pi-mcp-adapter 3.1.0's real cache; drift breaks stdio direct-tool resolution.
 		assert.equal(computeMcpServerHash(CURRENT_DEFINITION), "d2b80559f0b1c85ccc625a4c7f875f64e0defc60648f56d2a51cbe5dfa3d967e");

@@ -40,7 +40,7 @@ export interface McpConfig {
 	imports?: ImportKind[];
 	settings?: {
 		toolPrefix?: McpToolPrefix;
-		directTools?: boolean;
+		directTools?: boolean | "search";
 		agentPluginPaths?: unknown;
 	};
 }
@@ -392,7 +392,7 @@ function parseServerEntries(value: unknown): Record<string, ServerEntry> {
 function parseSettings(value: unknown): McpConfig["settings"] | undefined {
 	if (!isRecord(value)) return undefined;
 	const toolPrefix = value.toolPrefix === "server" || value.toolPrefix === "short" || value.toolPrefix === "none" || value.toolPrefix === "mcp" ? value.toolPrefix : undefined;
-	const directTools = typeof value.directTools === "boolean" ? value.directTools : undefined;
+	const directTools = typeof value.directTools === "boolean" || value.directTools === "search" ? value.directTools : undefined;
 	const settings: NonNullable<McpConfig["settings"]> = {
 		...(toolPrefix ? { toolPrefix } : {}),
 		...(directTools !== undefined ? { directTools } : {}),
